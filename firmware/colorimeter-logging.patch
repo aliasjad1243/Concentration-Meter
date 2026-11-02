@@ -1,0 +1,128 @@
+--- a/src/colorimeter.py
++++ b/src/colorimeter.py
+@@ -8,6 +8,7 @@
+ import adafruit_itertools
+ 
+ from light_sensor import LightSensor
++from serial_logger import SerialLogger
+ from light_sensor import LightSensorOverflow
+ from light_sensor import LightSensorIOError
+ 
+@@ -122,6 +123,14 @@
+         self.battery_monitor = BatteryMonitor()
+         self.setup_gain_and_itime_cycles()
+ 
++        # Added: USB serial logging of every reading for calibration work
++        self.logger = SerialLogger(
++                enabled=self.configuration.serial_log,
++                interval_s=self.configuration.log_interval,
++                label=self.configuration.log_label,
++                )
++        self.logger.header()
++
+     def setup_gain_and_itime_cycles(self):
+         self.gain_cycle = adafruit_itertools.cycle(constants.GAIN_TO_STR) 
+         if self.configuration.gain is not None:
+@@ -215,7 +224,7 @@
+                         self.absorbance
+                         )
+             except CalibrationsError as error:
+-                self.message_screen.set_message(error_message)
++                self.message_screen.set_message(str(error))
+                 self.message_screen.set_to_error()
+                 self.measurement_name = 'Absorbance'
+                 self.mode = Mode.MESSAGE
+@@ -233,6 +242,9 @@
+         self.blank_value = ulab.numpy.median(blank_samples)
+         if set_blanked:
+             self.is_blanked = True
++            if hasattr(self, 'logger'):
++                self.logger.note('blank={:.1f} (median of {} reads)'.format(
++                    self.blank_value, constants.NUM_BLANK_SAMPLES))
+ 
+     def blank_button_pressed(self, buttons):  
+         if self.is_raw_sensor:
+@@ -371,6 +383,20 @@
+                 battery_voltage = self.battery_monitor.voltage_lowpass
+                 self.measure_screen.set_bat(battery_voltage)
+ 
++                # Added: log the raw reading with blank, gain and itime
++                if self.logger.enabled and self.is_blanked:
++                    try:
++                        raw = self.raw_sensor_value
++                    except LightSensorOverflow:
++                        self.logger.note('overflow')
++                    else:
++                        self.logger.maybe_log(
++                                time.monotonic(), raw, self.blank_value,
++                                constants.GAIN_TO_STR[self.light_sensor.gain],
++                                constants.INTEGRATION_TIME_TO_STR[self.light_sensor.integration_time],
++                                battery_voltage,
++                                )
++
+                 self.measure_screen.show()
+ 
+             elif self.mode == Mode.MENU:
+--- a/src/configuration.py
++++ b/src/configuration.py
+@@ -25,27 +25,27 @@
+             gain_str = self.data['gain']
+         except KeyError:
+             error_msg = f'{self.FILE_TYPE} missing gain'
+-            error_dict['gain'] = error_msg
++            self.error_dict['gain'] = error_msg
+         else:
+             try:
+                 gain = constants.STR_TO_GAIN[gain_str]
+             except KeyError:
+                 error_msg = f'{self.FILE_TYPE} unknown gain {gain_str}'
+-                error_dict['gain'] = error_msg
++                self.error_dict['gain'] = error_msg
+ 
+         # Check integration time
+         try:
+             itime_str = self.data['integration_time']
+         except KeyError:
+             error_msg = f'{self.FILE_TYPE} missing integration time'
+-            error_dict['integration_time'] = error_msg
++            self.error_dict['integration_time'] = error_msg
+         else:
+ 
+             try:
+                 itime = constants.STR_TO_INTEGRATION_TIME[itime_str]
+             except KeyError:
+                 error_msg = f'{self.FILE_TYPE} unknown integration time {itime_str}'
+-                error_dict['integration_time'] = error_msg
++                self.error_dict['integration_time'] = error_msg
+ 
+         # Remove configurations with errors
+         for name in self.error_dict:
+@@ -60,7 +60,7 @@
+         else:
+             if not precision in self.ALLOWED_PRECISION:
+                 error_msg = f'precision must be in{self.ALLOWED_PRECISION}'
+-                error_dict['precision'] = error_msg
++                self.error_dict['precision'] = error_msg
+ 
+     @property
+     def integration_time(self):
+@@ -90,6 +90,19 @@
+     def precision(self):
+         return self.data['precision']
+ 
++    @property
++    def serial_log(self):
++        # Added: stream readings over USB serial (see serial_logger.py)
++        return bool(self.data.get('serial_log', False))
++
++    @property
++    def log_interval(self):
++        return float(self.data.get('log_interval', 1.0))
++
++    @property
++    def log_label(self):
++        return str(self.data.get('log_label', 'sample'))
++
+ 
+ 
+             
