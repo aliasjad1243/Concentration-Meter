@@ -5,9 +5,9 @@ IO Rodeo, an open-source handheld colorimeter. It shines an LED of one color thr
 sample and measures how much light gets through with a TSL2591 light sensor. The darker the
 dye, the less light reaches the sensor, so the reading can be turned into a concentration.
 
-I built the device as a proof of concept from IO Rodeo's LED board and firmware, then changed
-the firmware so every reading is streamed to a laptop, and wrote the scripts to build
-calibration curves, check repeatability and compare tube-holder designs.
+I built the device as a proof of concept from IO Rodeo's LED board and firmware, changed the
+firmware so every reading streams to a laptop, and wrote the script that builds the calibration
+curve and checks repeatability.
 **This repo only holds the files I wrote or changed.** The boards, enclosure and stock firmware
 are in IO Rodeo's repos.
 
@@ -22,19 +22,17 @@ are in IO Rodeo's repos.
 
 Software is MIT; hardware and docs are CC-BY-4.0.
 
-## What I did
+## My contributions (what I did → where to look)
 
-- **Assembly:** hand-soldered the KiCad LED board and wired the TSL2591 sensor on the I²C bus
-  → [`docs/build-and-test.md`](docs/build-and-test.md)
-- **LED choice and resistor:** matched a 630 nm LED to FD&C Blue 1's absorption peak and sized
-  the current-limiting resistor for the 3.3 V supply (82 Ω, ~16 mA)
-- **Firmware logging:** added `serial_logger.py` and hooked it into the main loop so each reading
-  streams over USB serial, and fixed two small bugs in the stock config/calibration error handling
-  → [`firmware/`](firmware/)
-- **Calibration:** 6 dye standards, 10 repeats each, linear fit, LOD/LOQ, CV per standard, and
-  export straight into the meter's `calibrations.json` → [`analysis/calibrate.py`](analysis/calibrate.py)
-- **Holder DOE:** one-factor comparison of 3 tube-holder designs modeled in Creo, on seating
-  consistency and stray light → [`analysis/doe.py`](analysis/doe.py)
+1. **Assembly:** hand-soldered the KiCad LED board and wired the TSL2591 light sensor on the I²C
+   bus (630 nm LED for FD&C Blue 1, 82 Ω resistor on 3.3 V) → [`docs/build-and-test.md`](docs/build-and-test.md)
+2. **Firmware: readings streamed over USB serial for live logging in Python:** new
+   `serial_logger.py` module hooked into the main loop, plus two small fixes to the stock
+   config/calibration error handling → [`firmware/`](firmware/); laptop logger
+   → [`tools/log_serial.py`](tools/log_serial.py)
+3. **Calibration in Python:** 6 dye standards × 10 repeats, linear fit, repeatability (CV) per
+   standard (target ≤ 2 %), exported straight into the meter's `calibrations.json`
+   → [`analysis/calibrate.py`](analysis/calibrate.py), [`data/standards.csv`](data/standards.csv)
 
 ## Files
 
@@ -44,9 +42,8 @@ firmware/
   colorimeter-logging.patch     changes to colorimeter.py and configuration.py
   configuration.json            example config with logging turned on
 tools/log_serial.py             saves the serial stream to a CSV on the laptop
-analysis/calibrate.py           calibration curve, LOD/LOQ, repeatability, JSON export
-analysis/doe.py                 one-way ANOVA across holder designs
-docs/build-and-test.md          wiring, LED resistor math, standards, test procedure
+analysis/calibrate.py           calibration curve, repeatability, JSON export
+docs/build-and-test.md          wiring, LED resistor math, standards, calibration procedure
 data/standards.csv              standard concentrations (S0–S5)
 ```
 
@@ -65,10 +62,9 @@ use `firmware/configuration.json` as the meter's `configuration.json`. Then:
 ```bash
 python tools/log_serial.py COM7 data/readings.csv
 python analysis/calibrate.py data/readings.csv data/standards.csv --json calibrations.json
-python analysis/doe.py data/doe_holders.csv
 ```
 
-`tools/log_serial.py` needs `pyserial`; `doe.py` uses `scipy` for p-values if it's installed.
+`tools/log_serial.py` needs `pyserial`.
 
 ## License
 

@@ -44,9 +44,3 @@ The LED is always on, so the blank reading is taken with the same current every 
    wait for 3 log lines, remove. 10 repeats per standard.
 3. `python analysis/calibrate.py data/readings.csv data/standards.csv --json calibrations.json`
 4. Copy the entry into the meter's `calibrations.json` so it reads mg/L directly.
-
-## Holder DOE
-
-Three holder designs (A, B, C) modeled in Creo and 3D printed. For each: re-seat the same S3
-tube 10 times and record absorbance, then turn the LED off with the tube in and record the
-dark count (outside light). `python analysis/doe.py data/doe_holders.csv`
