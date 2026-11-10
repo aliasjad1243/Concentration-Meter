@@ -66,6 +66,10 @@ python analysis/calibrate.py data/readings.csv data/standards.csv --json calibra
 
 `tools/log_serial.py` needs `pyserial`.
 
+## Try it with example data
+
+`data/example/` has **simulated** files (generated, not measured) so the scripts can be run without the hardware; see [`data/example/README.md`](data/example/README.md).
+
 ## License
 
 My code is MIT, matching the Open Colorimeter software ([`LICENSE`](LICENSE)). The hardware
