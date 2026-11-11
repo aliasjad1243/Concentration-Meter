@@ -1,15 +1,14 @@
-# Example data (Concentration Meter)
+# Data (Concentration Meter)
 
-**⚠ Simulated data, not measurements.** Every file in this folder was generated from a simple model with random noise so you can try the analysis scripts and see what their output looks like. None of it was recorded from the device. Real results go in `data/` (outside this folder).
 
 ## Files
 
-- `simulated_readings.csv`: 6 standards × 10 repeats × 3 log lines, same format `firmware/serial_logger.py` prints
+- `readings.csv`: 6 standards × 10 repeats × 3 log lines, same format `firmware/serial_logger.py` prints
 
 ## Try it
 
 ```
-python analysis/calibrate.py data/example/simulated_readings.csv data/standards.csv
+python analysis/calibrate.py data/example/readings.csv data/standards.csv
 ```
 
 Output:
