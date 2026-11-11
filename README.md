@@ -43,6 +43,7 @@ firmware/
   configuration.json            example config with logging turned on
 tools/log_serial.py             saves the serial stream to a CSV on the laptop
 analysis/calibrate.py           calibration curve, repeatability, JSON export
+tests/test_meter.py             pytest tests for the logger and calibration math
 docs/build-and-test.md          wiring, LED resistor math, standards, calibration procedure
 data/standards.csv              standard concentrations (S0–S5)
 ```
@@ -64,7 +65,7 @@ python tools/log_serial.py COM7 data/readings.csv
 python analysis/calibrate.py data/readings.csv data/standards.csv --json calibrations.json
 ```
 
-`tools/log_serial.py` needs `pyserial`.
+`tools/log_serial.py` needs `pyserial`. Tests (no hardware needed): `pip install pytest`, then `pytest tests/`.
 
 ## Try it with example data
 
