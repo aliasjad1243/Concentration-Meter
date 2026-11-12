@@ -11,8 +11,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "firmware"))
 sys.path.insert(0, str(ROOT / "analysis"))
 
-from serial_logger import HEADER, SerialLogger, absorbance_from, format_line  # noqa: E402
-from calibrate import fit, load  # noqa: E402
+from serial_logger import HEADER, SerialLogger, absorbance_from, format_line  
+from calibrate import fit, load  
 
 
 # ---------------------------------------------------------------- absorbance
