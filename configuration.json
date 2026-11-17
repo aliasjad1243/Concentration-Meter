@@ -1,0 +1,9 @@
+{
+  "gain": "med",
+  "integration_time": "500ms",
+  "precision": 3,
+  "startup": "Absorbance",
+  "serial_log": true,
+  "log_interval": 1.0,
+  "log_label": "S3_rep01"
+}
